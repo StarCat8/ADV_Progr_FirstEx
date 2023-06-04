@@ -1,0 +1,7 @@
+circle_radius 5
+uniform_sphere_radius 5
+IsoThermal_sphere_radius 1000000
+total_mass 10e14
+concentration 100.5
+Rmax 750
+r_min 1
