@@ -17,7 +17,7 @@ float volSfera(float r);
 float density(float *punti, float (*A)(float), float dist1, float dist2, int Npnt);
 void readParamFloat(char *name);
 void readParamInt(char *name);
-void rejection(float ymin, float ymax, int numpunti, float intervallo, long *dumm, float rho0, char *name, float(*f)(float, float, float), float *point, float Rs, float Rmin);
+void rejection(float ymin, float ymax, int numpunti, float intervallo, long *dumm, float rho0, char *name, float (*f)(float, float, float), float *point, float Rs, float Rmin);
 float NFW(float rho0, float r, float rs);
 float findRHO0(float mass, float Rmax, float c);
 float totalNFW_mass(float rho0, float Rmax, float rs);

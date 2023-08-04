@@ -18,7 +18,7 @@ int main(int argc, char *argv[]){
     }
     int i, j, k;
     long int uu;
-    float RHO0, RHOMAX;
+    float RHO0, RHOMAX, massPerPoint;
     long int *dumm = &uu;
     float x, phi, theta, RHO, RHO_cumulative, r, dr, X, Y, Z;
     float *ang1, *ang2, *rad;
@@ -26,7 +26,9 @@ int main(int argc, char *argv[]){
     readParamFloat(paramFile);
     readParamInt(paramFile);
     int Npnt = atoi(argv[1]);
-    printf("la %f %f %f %d %fal", uniform_sphere_radius, isothermal_sphere_radius, circle_radius, Npnt);
+    float floatNpnt = (float)Npnt;
+    massPerPoint = total_mass/floatNpnt;
+    printf("la %f %f %f %d %fal", uniform_sphere_radius, isothermal_sphere_radius, circle_radius, Npnt, x);
     RHO0 = findRHO0(total_mass, Rmax, concentration);
 
 
@@ -55,11 +57,11 @@ int main(int argc, char *argv[]){
         }
         fclose(distrC);
         A=&areaCerchio;
-        r=0;
+        r=0; 
         dr=0.01;
         RHO_cumulative = 0;
         while(r<=1){
-            RHO = density(rad, A, r, (r+dr), Npnt);
+            RHO = density(rad, A, r, (r+dr), Npnt) * massPerPoint;
             RHO_cumulative += RHO * (A(r+dr)-A(r));
             fprintf(denProfileC, "%f %f 1\n", r * circle_radius, RHO);
             fprintf(denProfileC_cumulative, "%f %f 1\n", r * circle_radius, RHO_cumulative);
@@ -104,12 +106,12 @@ int main(int argc, char *argv[]){
         dr=0.01;
         RHO_cumulative = 0;
         while(r<=1){
-            RHO = density(rad, A, r, (r+dr), Npnt);
+            RHO = density(rad, A, r, (r+dr), Npnt) * massPerPoint;
             RHO_cumulative += RHO * (A(r+dr)-A(r));
             fprintf(denProfileS_cumulative, "%f %f 1\n", r * uniform_sphere_radius, RHO_cumulative);
             fprintf(denProfileS, "%f %f 1\n", r * uniform_sphere_radius, RHO);
             fprintf(denProfileSLOG, "%f %f 1\n", r * uniform_sphere_radius, log10(RHO));
-            r=r+dr;
+            r=r+dr; 
         }
         fclose(denProfileS);
         fclose(denProfileS_cumulative);
@@ -149,7 +151,7 @@ int main(int argc, char *argv[]){
         dr=0.01;
         RHO_cumulative = 0;
         while(r<=1){
-            RHO = density(rad, A, r, (r+dr), Npnt);
+            RHO = density(rad, A, r, (r+dr), Npnt) * massPerPoint;
             RHO_cumulative += RHO * (A(r+dr)-A(r));
             fprintf(denProfileIsoTherm, "%f %f 1\n", r * isothermal_sphere_radius, RHO);
             fprintf(denProfileIsoTherm_cumulative, "%f %f 1\n", r * isothermal_sphere_radius, RHO_cumulative);
@@ -171,14 +173,14 @@ int main(int argc, char *argv[]){
     mkdir(cartellaNFW, 0777);
     denProfileNFW = fopen("NFW_data/densProNFW.txt", "w+");
     denProfileNFW_cumulative = fopen("NFW_data/densProNFW_cumulative.txt", "w+");
-    denProfileNFWLOG = fopen("NFW_data/densProNFWLOG.txt", "w+");
+    denProfileNFWLOG = fopen("NFW_data/densProNFWLOGz.txt", "w+");
     distProfileNFW = fopen("NFW_data/distribProNFW.txt", "w+");
     float *NFWpoints = malloc(sizeof(float) * Npnt);       // allocate memory for the array of points of the distribution
-    char NFWdist[] = "NFW_data/NFWdistrib.txt";
+    char NFWdist[] = "NFW_data/NFWdistribc.txt";
     RHOMAX = NFW( RHO0 , r_min, Rmax/concentration);
     printf("\n ->%f<- \n", RHOMAX);
     F = &NFW;
-    rejection(0, RHOMAX, Npnt, Rmax, dumm, RHO0, NFWdist, F, NFWpoints, Rmax/concentration, r_min);
+    rejection(1, RHOMAX, Npnt, Rmax, dumm, RHO0, NFWdist, F, NFWpoints, Rmax/concentration, r_min);
     makeHist(NFWdist, 20);
     f=&anglePHI;
     ang1 = creaPunti(Npnt, f, dumm);
@@ -190,16 +192,18 @@ int main(int argc, char *argv[]){
         Z=*(NFWpoints + i) *  cos(*(ang2+i));
         fprintf(distProfileNFW, "%f %f %f 1\n", X, Y, Z);
     }
-            A=&volSfera;
-        r=0;
+        A=&volSfera;
+        r=1;
         dr=Rmax/1000;
         RHO_cumulative = 0;
         while(r<=Rmax){
-            RHO = density(NFWpoints, A, r, (r+dr), Npnt);
+            RHO = density(NFWpoints, A, r, (r+dr), Npnt) * massPerPoint;
             RHO_cumulative += RHO * (A(r+dr)-A(r));
-            fprintf(denProfileNFW, "%f %f 1\n", log10(r) , log10(RHO));
-            fprintf(denProfileNFW_cumulative, "%f %f 1\n", r , RHO_cumulative);
-            fprintf(denProfileNFWLOG, "%f %f 1\n", log10(r ), log10(RHO));
+            if(RHO > 0){
+                fprintf(denProfileNFW, "%f %f 1\n", r , RHO);
+                fprintf(denProfileNFW_cumulative, "%f %f 1\n", r , RHO_cumulative);
+                fprintf(denProfileNFWLOG, "%f %f 1\n", log10(r), log10(RHO));
+            }
             r=r+dr;
         }
         fclose(denProfileNFW);
@@ -208,6 +212,8 @@ int main(int argc, char *argv[]){
         free(ang1);
         free(ang2);
         free(NFWpoints);
+    
+    return 0;
 }
 
 

@@ -158,10 +158,10 @@ void rejection(float ymin, float ymax, int numpunti, float intervallo, long *dum
 	int i = 0;
 	while(i < numpunti){ //
 		xtry = 1.*(intervallo * ran3(dumm)) + Rmin;
-		ytry = 1.*((ymax-ymin)*ran3(dumm));
+		ytry = 1.*((ymax-ymin) * ran3(dumm)) + ymin;
 		y = f(rho0, xtry, Rs); //
         if(ytry < y){
-            fprintf(fileT, "%f %f\n", log10(xtry), log10(ytry));
+            fprintf(fileT, "%f %f\n", (xtry), (ytry));
             point[i] = xtry;
             i++;
             }
@@ -171,7 +171,7 @@ void rejection(float ymin, float ymax, int numpunti, float intervallo, long *dum
 
 float NFW(float rho0, float r, float rs){
     float x;
-    x = rho0 /(( ( r / rs ) * ( 1 + r / rs ) ) *  ( 1 + r / rs ));
+    x = rho0 /( ( r / rs ) * (( 1 + r / rs )  *  ( 1 + r / rs )));
     return x;
 }
 
